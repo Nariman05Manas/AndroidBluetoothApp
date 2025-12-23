@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Базовые размеры для стандартных экранов -->
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_medium">16dp</dimen>
+    <dimen name="padding_large">24dp</dimen>
+    
+    <dimen name="text_size_small">12sp</dimen>
+    <dimen name="text_size_medium">16sp</dimen>
+    <dimen name="text_size_large">20sp</dimen>
+    
+    <dimen name="button_height">48dp</dimen>
+    <dimen name="card_corner_radius">12dp</dimen>
+    
+    <!-- Для экранов типа Samsung A15 (1080x2340) и Redmi Note 12S -->
+    <dimen name="screen_horizontal_margin">16dp</dimen>
+    <dimen name="screen_vertical_margin">16dp</dimen>
+</resources>
+

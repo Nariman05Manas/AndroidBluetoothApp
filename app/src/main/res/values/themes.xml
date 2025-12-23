@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Bluetooth111" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Bluetooth111" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Поддержка системных баров для всех устройств -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        
+        <!-- Правильная работа с клавиатурой -->
+        <item name="android:windowSoftInputMode">adjustResize</item>
+        
+        <!-- НЕ залезаем под вырезы камеры -->
+        <item name="android:windowLayoutInDisplayCutoutMode">default</item>
+    </style>
 </resources>

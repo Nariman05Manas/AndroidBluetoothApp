@@ -34,6 +34,10 @@ fun MotorControlView(
     bluetoothManager: BluetoothManager,
     onDismiss: () -> Unit
 ) {
+    // Определяем ориентацию экрана
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    
     var throttlePosition by remember { mutableStateOf(Offset(0f, 0f)) }
     var steeringPosition by remember { mutableStateOf(Offset(0f, 0f)) }
     var isThrottleActive by remember { mutableStateOf(false) }
@@ -51,8 +55,9 @@ fun MotorControlView(
     val connectionStatus by bluetoothManager.connectionStatus.collectAsState()
     val scope = rememberCoroutineScope()
     
-    val joystickRadius = 80f
-    val handleRadius = 30f
+    // Адаптивные размеры для портрета и альбома
+    val joystickRadius = if (isLandscape) 50f else 55f  // Уменьшено: 70f → 55f
+    val handleRadius = if (isLandscape) 20f else 24f    // Уменьшено: 28f → 24f
     
     val minServoAngle = 62
     val maxServoAngle = 118
@@ -96,15 +101,15 @@ fun MotorControlView(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(if (isLandscape) 8.dp else 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(if (isLandscape) 4.dp else 12.dp)
         ) {
             // Верхний ряд с кнопками навигации
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
+                    .padding(bottom = if (isLandscape) 2.dp else 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -114,13 +119,13 @@ fun MotorControlView(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Назад",
                         tint = Color(0xFF1976D2),
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(if (isLandscape) 24.dp else 32.dp)
                     )
                 }
                 
                 Text(
                     text = "Управление",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = if (isLandscape) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1976D2)
                 )
@@ -131,7 +136,7 @@ fun MotorControlView(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Закрыть",
                         tint = Color.Red,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(if (isLandscape) 24.dp else 32.dp)
                     )
                 }
             }
@@ -147,26 +152,26 @@ fun MotorControlView(
                 )
             ) {
                 Row(
-                    modifier = Modifier.padding(12.dp),
+                    modifier = Modifier.padding(if (isLandscape) 6.dp else 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(if (isLandscape) 4.dp else 8.dp)
                 ) {
                     Icon(
                         imageVector = if (isConnected) Icons.Default.Check else Icons.Default.Warning,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(if (isLandscape) 12.dp else 16.dp)
                     )
                     Text(
                         text = connectionStatus,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = if (isLandscape) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
             
-            if (connectionStatus != "Ready" && isConnected) {
+            if (connectionStatus != "Ready" && isConnected && !isLandscape) {
                 Text(
                     text = "Ожидание готовности...",
                     style = MaterialTheme.typography.bodySmall,
@@ -174,73 +179,93 @@ fun MotorControlView(
                 )
             }
             
-            // Настройки сверху
+            // Настройки сверху с адаптивными размерами
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = if (isLandscape) 4.dp else 24.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
                     onClick = { showThrottleSettings = true },
+                    modifier = Modifier.height(if (isLandscape) 40.dp else 50.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,
                         contentColor = Color(0xFF1976D2)
+                    ),
+                    contentPadding = PaddingValues(
+                        horizontal = if (isLandscape) 8.dp else 12.dp, 
+                        vertical = if (isLandscape) 2.dp else 2.dp
                     )
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             "Газ", 
-                            style = MaterialTheme.typography.bodySmall,
+                            style = if (isLandscape) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
                             color = Color(0xFF1976D2),
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             "${maxThrottle.toInt()}", 
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = if (isLandscape) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodySmall,
                             color = Color(0xFF4CAF50),
                             fontWeight = FontWeight.Bold
                         )
-                        Text(
-                            "×${String.format("%.1f", throttleSensitivity)}", 
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.Black
-                        )
+                        if (!isLandscape) {
+                            Text(
+                                "×${String.format("%.1f", throttleSensitivity)}", 
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Black
+                            )
+                        }
                     }
                 }
                 
                 Button(
                     onClick = { showSteeringSettings = true },
+                    modifier = Modifier.height(if (isLandscape) 40.dp else 50.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.White,
                         contentColor = Color(0xFF1976D2)
+                    ),
+                    contentPadding = PaddingValues(
+                        horizontal = if (isLandscape) 8.dp else 12.dp, 
+                        vertical = if (isLandscape) 2.dp else 2.dp
                     )
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             "Угол", 
-                            style = MaterialTheme.typography.bodySmall,
+                            style = if (isLandscape) MaterialTheme.typography.labelSmall else MaterialTheme.typography.labelMedium,
                             color = Color(0xFF1976D2),
                             fontWeight = FontWeight.Bold
                         )
                         Text(
                             "${maxSteeringAngle.toInt()}°", 
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = if (isLandscape) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodySmall,
                             color = Color(0xFF2196F3),
                             fontWeight = FontWeight.Bold
                         )
-                        Text(
-                            "×${String.format("%.1f", steeringSensitivity)}", 
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color.Black
-                        )
+                        if (!isLandscape) {
+                            Text(
+                                "×${String.format("%.1f", steeringSensitivity)}", 
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Black
+                            )
+                        }
                     }
                 }
             }
             
-            // Джойстики на весь экран по горизонтали
+            // Джойстики с адаптивными отступами
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .weight(1f)
+                    .padding(
+                        top = if (isLandscape) 4.dp else 16.dp, 
+                        bottom = if (isLandscape) 4.dp else 32.dp
+                    ),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -248,9 +273,11 @@ fun MotorControlView(
                 Column(
                     modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(if (isLandscape) 2.dp else 8.dp)
                 ) {
-                    Text("Вперёд\nНазад", style = MaterialTheme.typography.bodySmall)
+                    if (!isLandscape) {
+                        Text("Вперёд\nНазад", style = MaterialTheme.typography.bodySmall)
+                    }
                     JoystickView(
                         position = throttlePosition,
                         isActive = isThrottleActive,
@@ -263,7 +290,7 @@ fun MotorControlView(
                     )
                     Text(
                         "${abs(throttlePosition.y * maxThrottle * throttleSensitivity).toInt()}",
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = if (isLandscape) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineMedium,
                         color = Color(0xFF4CAF50),
                         fontWeight = FontWeight.Bold
                     )
@@ -273,9 +300,11 @@ fun MotorControlView(
                 Column(
                     modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(if (isLandscape) 2.dp else 8.dp)
                 ) {
-                    Text("Влево\nВправо", style = MaterialTheme.typography.bodySmall)
+                    if (!isLandscape) {
+                        Text("Влево\nВправо", style = MaterialTheme.typography.bodySmall)
+                    }
                     JoystickView(
                         position = steeringPosition,
                         isActive = isSteeringActive,
@@ -288,38 +317,58 @@ fun MotorControlView(
                     )
                     Text(
                         "${(steeringPosition.x * maxSteeringAngle * steeringSensitivity).toInt()}°",
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = if (isLandscape) MaterialTheme.typography.titleMedium else MaterialTheme.typography.headlineMedium,
                         color = Color(0xFF2196F3),
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
             
-            // Кнопки управления
+            // Дополнительный отступ между джойстиками и кнопками
+            Spacer(modifier = Modifier.height(if (isLandscape) 4.dp else 24.dp))
+            
+            // Кнопки управления с адаптивными размерами
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = if (isLandscape) 4.dp else 16.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Button(
                     onClick = { bluetoothManager.sendMotorSpeed(-maxThrottle.toInt()) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    modifier = if (isLandscape) Modifier.height(36.dp) else Modifier,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
+                    contentPadding = if (isLandscape) PaddingValues(horizontal = 12.dp, vertical = 4.dp) else ButtonDefaults.ContentPadding
                 ) {
-                    Text("Назад")
+                    Text(
+                        "Назад",
+                        style = if (isLandscape) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium
+                    )
                 }
                 Button(
                     onClick = {
                         throttlePosition = Offset(0f, 0f)
                         bluetoothManager.sendMotorSpeed(0)
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                    modifier = if (isLandscape) Modifier.height(36.dp) else Modifier,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray),
+                    contentPadding = if (isLandscape) PaddingValues(horizontal = 12.dp, vertical = 4.dp) else ButtonDefaults.ContentPadding
                 ) {
-                    Text("Стоп")
+                    Text(
+                        "Стоп",
+                        style = if (isLandscape) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium
+                    )
                 }
                 Button(
                     onClick = { bluetoothManager.sendMotorSpeed(maxThrottle.toInt()) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                    modifier = if (isLandscape) Modifier.height(36.dp) else Modifier,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                    contentPadding = if (isLandscape) PaddingValues(horizontal = 12.dp, vertical = 4.dp) else ButtonDefaults.ContentPadding
                 ) {
-                    Text("Вперёд")
+                    Text(
+                        "Вперёд",
+                        style = if (isLandscape) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
         }
@@ -362,6 +411,9 @@ fun JoystickView(
     onPositionChange: (Offset) -> Unit,
     onRelease: () -> Unit
 ) {
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val radiusPx = with(density) { radius.dp.toPx() }
+    
     Box(
         modifier = Modifier
             .size((radius * 2 + 40).dp)
@@ -369,10 +421,11 @@ fun JoystickView(
                 detectDragGestures(
                     onDragEnd = { onRelease() }
                 ) { change, _ ->
-                    val center = size.width / 2f
+                    val centerX = size.width / 2f
+                    val centerY = size.height / 2f
                     val location = change.position
-                    var deltaX = location.x - center
-                    var deltaY = location.y - center
+                    var deltaX = location.x - centerX
+                    var deltaY = location.y - centerY
                     
                     // Ограничиваем по одной оси
                     when (axis) {
@@ -380,25 +433,29 @@ fun JoystickView(
                         JoystickAxis.Horizontal -> deltaY = 0f
                     }
                     
-                    val distance = minOf(sqrt(deltaX * deltaX + deltaY * deltaY), radius)
+                    val distance = minOf(sqrt(deltaX * deltaX + deltaY * deltaY), radiusPx)
                     val angle = atan2(deltaY, deltaX)
                     
+                    val normalizedDistance = distance / radiusPx
+                    
                     val newPosition = Offset(
-                        x = if (axis == JoystickAxis.Horizontal) cos(angle) * distance / radius else 0f,
-                        y = if (axis == JoystickAxis.Vertical) sin(angle) * distance / radius else 0f
+                        x = if (axis == JoystickAxis.Horizontal) cos(angle) * normalizedDistance else 0f,
+                        y = if (axis == JoystickAxis.Vertical) sin(angle) * normalizedDistance else 0f
                     )
                     
                     onPositionChange(newPosition)
                 }
             }
     ) {
+        val handleRadiusPx = with(density) { handleRadius.dp.toPx() }
+        
         Canvas(modifier = Modifier.fillMaxSize()) {
             val center = Offset(size.width / 2f, size.height / 2f)
             
             // Фон джойстика (серый круг)
             drawCircle(
                 color = Color.Gray.copy(alpha = 0.3f),
-                radius = radius,
+                radius = radiusPx,
                 center = center
             )
             
@@ -406,38 +463,57 @@ fun JoystickView(
             if (axis == JoystickAxis.Vertical) {
                 drawLine(
                     color = Color.Gray.copy(alpha = 0.5f),
-                    start = Offset(center.x, center.y - radius),
-                    end = Offset(center.x, center.y + radius),
+                    start = Offset(center.x, center.y - radiusPx),
+                    end = Offset(center.x, center.y + radiusPx),
                     strokeWidth = 3f
                 )
             } else {
                 drawLine(
                     color = Color.Gray.copy(alpha = 0.5f),
-                    start = Offset(center.x - radius, center.y),
-                    end = Offset(center.x + radius, center.y),
+                    start = Offset(center.x - radiusPx, center.y),
+                    end = Offset(center.x + radiusPx, center.y),
                     strokeWidth = 3f
                 )
             }
             
             // Ручка (ползунок)
             val handleCenter = Offset(
-                center.x + (if (axis == JoystickAxis.Horizontal) position.x * radius else 0f),
-                center.y + (if (axis == JoystickAxis.Vertical) position.y * radius else 0f)
+                center.x + (if (axis == JoystickAxis.Horizontal) position.x * radiusPx else 0f),
+                center.y + (if (axis == JoystickAxis.Vertical) position.y * radiusPx else 0f)
             )
             
             drawCircle(
                 color = color.copy(alpha = 0.7f),
-                radius = handleRadius,
+                radius = handleRadiusPx,
                 center = handleCenter
             )
             
             // Обводка ручки
             drawCircle(
                 color = color,
-                radius = handleRadius,
+                radius = handleRadiusPx,
                 center = handleCenter,
                 style = Stroke(width = 4f)
             )
+            
+            // Полоска внутри ручки
+            if (axis == JoystickAxis.Vertical) {
+                // Вертикальная полоска для джойстика "Вперёд/Назад"
+                drawLine(
+                    color = Color.White,
+                    start = Offset(handleCenter.x, handleCenter.y - handleRadiusPx * 0.6f),
+                    end = Offset(handleCenter.x, handleCenter.y + handleRadiusPx * 0.6f),
+                    strokeWidth = 4f
+                )
+            } else {
+                // Горизонтальная полоска для джойстика "Влево/Вправо"
+                drawLine(
+                    color = Color.White,
+                    start = Offset(handleCenter.x - handleRadiusPx * 0.6f, handleCenter.y),
+                    end = Offset(handleCenter.x + handleRadiusPx * 0.6f, handleCenter.y),
+                    strokeWidth = 4f
+                )
+            }
         }
     }
 }

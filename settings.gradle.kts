@@ -16,6 +16,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        // Yandex Mobile Ads SDK
+        maven { url = uri("https://android-sdk.is.com/") }
     }
 }
 

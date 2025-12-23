@@ -36,8 +36,8 @@ fun MainScreen(bluetoothManager: BluetoothManager) {
                     onClick = { selectedTabIndex = 0 }
                 )
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Create, contentDescription = "Командная строка") },
-                    label = { Text("Командная строка") },
+                    icon = { Icon(Icons.Default.Create, contentDescription = "CommandLine") },
+                    label = { Text("CommandLine") },
                     selected = selectedTabIndex == 1,
                     onClick = { selectedTabIndex = 1 }
                 )
@@ -80,8 +80,7 @@ fun MainScreen(bluetoothManager: BluetoothManager) {
         Dialog(
             onDismissRequest = { showMotorControl = false },
             properties = DialogProperties(
-                usePlatformDefaultWidth = false,
-                decorFitsSystemWindows = false
+                usePlatformDefaultWidth = false
             )
         ) {
             Surface(modifier = Modifier.fillMaxSize()) {
@@ -97,8 +96,7 @@ fun MainScreen(bluetoothManager: BluetoothManager) {
         Dialog(
             onDismissRequest = { showSensorData = false },
             properties = DialogProperties(
-                usePlatformDefaultWidth = false,
-                decorFitsSystemWindows = false
+                usePlatformDefaultWidth = false
             )
         ) {
             Surface(modifier = Modifier.fillMaxSize()) {

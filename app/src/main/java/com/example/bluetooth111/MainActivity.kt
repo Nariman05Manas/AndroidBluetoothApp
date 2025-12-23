@@ -6,7 +6,6 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -14,12 +13,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
+import com.example.bluetooth111.ads.YandexAdsManager
 import com.example.bluetooth111.bluetooth.BluetoothManager
 import com.example.bluetooth111.ui.MainScreen
 import com.example.bluetooth111.ui.theme.Bluetooth111Theme
+import com.yandex.mobile.ads.common.MobileAds
 
 class MainActivity : ComponentActivity() {
     private lateinit var bluetoothManager: BluetoothManager
+    private lateinit var adsManager: YandexAdsManager
     
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -30,12 +32,21 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Инициализация менеджера рекламы
+        adsManager = YandexAdsManager(this)
+        
+        // Инициализация Yandex Mobile Ads SDK
+        MobileAds.initialize(this) {
+            android.util.Log.d("MainActivity", "✅ Yandex Mobile Ads SDK инициализирован")
+            // Загружаем и показываем рекламу ТОЛЬКО при старте приложения
+            adsManager.loadAd(autoShow = true)
+        }
+        
         bluetoothManager = BluetoothManager(this)
         
         // Запрашиваем разрешения
         requestBluetoothPermissions()
         
-        enableEdgeToEdge()
         setContent {
             Bluetooth111Theme {
                 Surface(
@@ -86,6 +97,8 @@ class MainActivity : ComponentActivity() {
     
     override fun onDestroy() {
         super.onDestroy()
+        // Освобождаем ресурсы рекламы
+        adsManager.destroy()
         // Отключаемся от Bluetooth при закрытии приложения
         // bluetoothManager.disconnect() // Раскомментируйте если нужно
     }
